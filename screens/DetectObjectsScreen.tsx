@@ -79,20 +79,13 @@ export default function DetectObjectsScreen() {
   const detectObjectsAsync = async (source) => {
     try {
       
-      const imageAssetPath = Image.resolveAssetSource(source);
-
-      // console.log(source)
+      // const imageAssetPath = Image.resolveAssetSource(source);
       const imgB64 = await FileSystem.readAsStringAsync(source.uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
       const imgBuffer = tf.util.encodeString(imgB64, 'base64').buffer;
       const raw = new Uint8Array(imgBuffer)
-      console.log(raw)
-      // const response = await fetch(imageAssetPath.uri, {}, { isBinary: true });
-      // const rawImageData = await response.arrayBuffer();
-      // const imageTensor = imageToTensor(rawImageData);
       const imageTensor = imageToTensor(raw);
-      
       const newPredictions = await model.current.detect(imageTensor);
  
       setPredictions(newPredictions);
@@ -122,14 +115,10 @@ export default function DetectObjectsScreen() {
             format: ImageManipulator.SaveFormat.JPEG,
             base64: true,
           }
-        );
-        // console.log('Imagem manipulada: '+ manipResponse.uri)
-        
-        // const source = { uri: response.uri };
+        ); 
         
         const source = { uri: manipResponse.uri };
-        setImageToAnalyze(source);
-        // console.log(manipResponse);
+        setImageToAnalyze(source); 
         setPredictions(null);
         await detectObjectsAsync(source);
       }
