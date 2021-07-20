@@ -19,6 +19,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 
 import { fetch } from "@tensorflow/tfjs-react-native";
+import * as FileSystem from 'expo-file-system';
 
 import { Text, View } from "../components/Themed";
 
@@ -77,16 +78,28 @@ export default function DetectObjectsScreen() {
 
   const detectObjectsAsync = async (source) => {
     try {
+      
       const imageAssetPath = Image.resolveAssetSource(source);
-      const response = await fetch(imageAssetPath.uri, {}, { isBinary: true });
-      const rawImageData = await response.arrayBuffer();
-      const imageTensor = imageToTensor(rawImageData);
+
+      // console.log(source)
+      const imgB64 = await FileSystem.readAsStringAsync(source.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const imgBuffer = tf.util.encodeString(imgB64, 'base64').buffer;
+      const raw = new Uint8Array(imgBuffer)
+      console.log(raw)
+      // const response = await fetch(imageAssetPath.uri, {}, { isBinary: true });
+      // const rawImageData = await response.arrayBuffer();
+      // const imageTensor = imageToTensor(rawImageData);
+      const imageTensor = imageToTensor(raw);
+      
       const newPredictions = await model.current.detect(imageTensor);
+ 
       setPredictions(newPredictions);
       console.log("=== Detect objects predictions: ===");
       console.log(newPredictions);
     } catch (error) {
-      console.log("Exception Error: ", error);
+      console.log("Exception Error: ",  error);
     }
   };
 
@@ -96,16 +109,24 @@ export default function DetectObjectsScreen() {
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
         aspect: [4, 3],
-      });
+      }); 
 
       if (!response.cancelled) {
         // resize image to avoid out of memory crashes
+
         const manipResponse = await ImageManipulator.manipulateAsync(
           response.uri,
           [{ resize: { width: 900 } }],
-          { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
+          { 
+            compress: 1, 
+            format: ImageManipulator.SaveFormat.JPEG,
+            base64: true,
+          }
         );
-
+        // console.log('Imagem manipulada: '+ manipResponse.uri)
+        
+        // const source = { uri: response.uri };
+        
         const source = { uri: manipResponse.uri };
         setImageToAnalyze(source);
         // console.log(manipResponse);

@@ -25,6 +25,7 @@ yarn.lock
 .vscode/*
 !.vscode/launch.json
 !.vscode/settings.json
+.history/
 
 # macOS
 .DS_Store
